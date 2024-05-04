@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  api:
+    image: linkextractor-api:step5-python
+    build: ./api
+    ports:
+      - "4569:4569"
+    environment:
+      - REDIS_URL=redis://redis:6379
+  web:
+    image: linkextractor-web:step5-php
+    build: ./www
+    ports:
+      - "83:80"
+    environment:
+      - API_ENDPOINT=http://api:4569/api/
+  redis:
+    image: redis
