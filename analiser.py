@@ -18,7 +18,6 @@ for filename in os.listdir("./results"):
         title = filename.split(")")[0].split("(")[1] + " " + filename.split("-users")[0].split(")-")[1]
 
         # Type,Name,Request Count,Failure Count,Median Response Time,Average Response Time,Min Response Time,Max Response Time,Average Content Size,Requests/s,Failures/s,50%,66%,75%,80%,90%,95%,98%,99%,99.9%,99.99%,100%
-        print("-----------------")
         all_data.append({
             "title": title,
             "qnt_users": filename.split(")-")[1].split("-users")[0],
@@ -37,11 +36,8 @@ for filename in os.listdir("./results"):
             "percentile_999": last_row["99.9%"].values[0],
             "percentile_9999": last_row["99.99%"].values[0],
             "percentile_100": last_row["100%"].values[0],
+            "requests_per_second": last_row["Requests/s"].values[0],
         })
-        print(title)
-        print(last_row["Average Response Time"].values[0])
-        print(last_row["90%"].values[0])
-        print("-----------------")
 
 
 # Convert collected data into a DataFrame
@@ -185,7 +181,42 @@ def plot_performance(dataFirst, dataSecond, x_col, y_col, labels, titles):
 # titles = {'titleCache': "Ruby Cache", 'titleNoCache': "Python Cache", 'titleComparison': "Ruby Cache vs Python Cache", 'titleFirst': "Ruby Cache", 'titleSecond': "Python Cache"}
 # plot_performance(rubyCache, pythonCache, "qnt_users", "percentile_90", {'xlabel': "Number of Users", 'ylabel': "Percentile 90 Response Time (ms)"}, titles)
 
-# All 3 metrics of Ruby No Cache vs Python No Cache
+
+
+
 # Compare the Average Response Time Ruby No Cache vs Python No Cache
 # titles = {'titleCache': "Ruby No Cache", 'titleNoCache': "Python No Cache", 'titleComparison': "Ruby No Cache vs Python No Cache", 'titleFirst': "Ruby No Cache", 'titleSecond': "Python No Cache"}
 # plot_performance(rubyNoCache, pythonNoCache, "qnt_users", "average_response_time", {'xlabel': "Number of Users", 'ylabel': "Average Response Time (ms)"}, titles)
+
+# Define a function to create a subplot for given number of users
+def plot_requests_per_second(ax, data, num_users, title):
+    filtered_data = data[data["qnt_users"] == num_users]
+    sns.barplot(data=filtered_data, x="title", y="requests_per_second", ax=ax)
+    ax.set_title(title)
+    ax.set_xlabel("Serviço")
+    ax.set_ylabel("Requests per Second")
+    if not filtered_data.empty:
+        ax.set_ylim(0, filtered_data["requests_per_second"].max() + 10)
+    sns.despine(left=True)
+
+# Create a single figure to hold all subplots
+plt.figure(figsize=(20, 18))  # Adjust the figure size as necessary
+
+# Plot for tests with 100 users
+ax1 = plt.subplot(3, 1, 1)  # 3 rows, 1 column, 1st subplot
+plot_requests_per_second(ax1, results_df, "100", "Requests per Second (100 Users)")
+
+# Plot for tests with 10 users
+ax2 = plt.subplot(3, 1, 2)  # 3 rows, 1 column, 2nd subplot
+plot_requests_per_second(ax2, results_df, "10", "Requests per Second (10 Users)")
+
+# Plot for tests with 1 user
+ax3 = plt.subplot(3, 1, 3)  # 3 rows, 1 column, 3rd subplot
+plot_requests_per_second(ax3, results_df, "1", "Requests per Second (1 User)")
+
+# Adjust layout to fit everything without overlapping
+plt.tight_layout()
+plt.show()
+
+
+
